@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "question": "What is the capital of France?",
+        "answers": ["London", "Paris", "Berlin", "Madrid"],
+        "correct": 1
+    },
+    {
+        "id": 2,
+        "question": "What is the largest planet in the Solar System?",
+        "answers": ["Venus", "Mars", "Jupiter", "Saturn"],
+        "correct": 2
+    },
+    {
+        "id": 3,
+        "question": "Which is the longest river in the world?",
+        "answers": ["Nile", "Amazon", "Yangtze", "Mississippi"],
+        "correct": 0
+    }
+]
