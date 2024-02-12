@@ -11,6 +11,16 @@ socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
 with open('quiz_questions.json', 'r') as file:
     quiz_questions = json.load(file)
 
+# util function 
+def get_random_string(length):
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
+
+# TODO: PROBLEME AVEC MES DICTIONNAIRES
+
+# Variables =======================================================================
+
 possibleSatutusOfQuizz = {1: "Waiting", 2: "Started"}
 statusOfQuizz = possibleSatutusOfQuizz.get(1)
 quizzId = get_random_string(4)
@@ -27,6 +37,69 @@ teams = {}
 numberOfPeoplePerTeam = 2
 pourcentageAnswersForTheQuestion = {} # { 1234(team): { "usernmae124" : [12, 14, 14, 12] } }
 answersForTheQuestion = {} # { 1234(team): { "usernmae124" : 2 } }
+
+
+# USEFULL Functions =======================================================================
+
+def addPlayerToATeam(username, sid):
+
+    didFoundATeam = False
+
+    # Adding on an existing team
+    for name, players in teams:
+        if len(players) < numberOfPeoplePerTeam:
+            players.update({ sid : { "username": username }})
+            didFoundATeam = True
+    
+    # Adding on a new team
+    if not didFoundATeam:
+        teams.update({ "name": get_random_string(6), "players": { sid: { "username": username }} })
+
+def findTeamNameOfPlayer(username):
+    userTeam = None
+    print(teams.values())
+    for name, players in teams.values():
+        for usernamePlayer in players:
+            if usernamePlayer == username:
+                userTeam = name
+                break
+    
+    return userTeam
+
+def displayQuestionAndAnswers(question, answers):
+
+    emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
+
+def displayProcessedAnswers():
+
+    answersProcessed = {}
+
+    for team in pourcentageAnswersForTheQuestion:
+        sumTeam = [0, 0, 0, 0]
+        for user in team:
+            for i in range(4):
+                sumTeam[i] += pourcentageAnswersForTheQuestion[team][user][i]
+        
+        for i in range(4):
+            sumTeam[i] = sumTeam[i] / numberOfPeoplePerTeam
+        
+        answersProcessed.update({ team: sumTeam })
+        
+    emit('processedAnswers', answersProcessed, room=quizzId)
+
+def displayTheCorrectAnswer(correct):
+    emit('correctAnswer', correct, room=quizzId)
+
+def processGoodAnswerByTeams(correct):
+    for team in answersForTheQuestion:
+        goodAnswer = max(answersForTheQuestion[team], key=answersForTheQuestion[team].get)
+        if goodAnswer == correct:
+            teams[team]["numberOfGoodAnswer"] += 1
+
+
+
+
+# Websockets Functions =======================================================================
 
 @app.route('/')
 def index():
@@ -48,6 +121,7 @@ def joinWaitingRoom():
     teamOfThePlayer = findTeamNameOfPlayer(username)
 
     emit('teams', teams, room=quizzId)
+    emit('username', username)
     emit('userTeam', teamOfThePlayer)
 
 # startTheQuizz : Launch the quizz for all participants
@@ -87,71 +161,6 @@ def sendAnswerPhase2(data):
     for team in answersForTheQuestion:
         if team == data.teamId:
             answersForTheQuestion[team][data.username] = data.answers
-
-
-
-# USEFULL Functions =======================================================================
-            
-def get_random_string(length):
-    letters = string.ascii_lowercase
-    result_str = ''.join(random.choice(letters) for i in range(length))
-    print("Random string of length", length, "is:", result_str)
-
-def addPlayerToATeam(username, sid):
-
-    didFoundATeam = False
-
-    # Adding on an existing team
-    for name, players in teams:
-        if len(players) < numberOfPeoplePerTeam:
-            players.update({ sid : { "username": username }})
-            didFoundATeam = True
-    
-    # Adding on a new team
-    if not didFoundATeam:
-        teams.update({ name: get_random_string(6), players: { sid: { "username": username }} })
-
-def findTeamNameOfPlayer(username):
-    userTeam = None
-    for name, players in teams:
-        for usernamePlayer in players:
-            if usernamePlayer == username:
-                userTeam = name
-                break
-    
-    return userTeam
-
-def displayQuestionAndAnswers(question, answers):
-
-    emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
-
-def displayProcessedAnswers():
-
-    answersProcessed = {}
-
-    for team in pourcentageAnswersForTheQuestion:
-        sumTeam = [0, 0, 0, 0]
-        for user in team:
-            for i in range(4):
-                sumTeam[i] += pourcentageAnswersForTheQuestion[team][user][i]
-        
-        for i in range(4):
-            sumTeam[i] = sumTeam[i] / numberOfPeoplePerTeam
-        
-        answersProcessed.update({ team: sumTeam })
-        
-    emit('processedAnswers', answersProcessed, room=quizzId)
-
-def displayTheCorrectAnswer(correct):
-    emit('correctAnswer', correct, room=quizzId)
-
-def processGoodAnswerByTeams(correct):
-    for team in answersForTheQuestion:
-        goodAnswer = max(answersForTheQuestion[team], key=answersForTheQuestion[team].get)
-        if goodAnswer == correct:
-            teams[team]["numberOfGoodAnswer"] += 1
-
-
 
 if __name__ == '__main__':
     socketio.run(app)
