@@ -5,7 +5,8 @@
   </template>
   
   <script setup>
-  import Quiz from './components/Quiz.vue';
+  //import Quiz from './components/Quiz.vue';
+  import Quiz from './components/Quiz2.vue';
   </script>
   
   <style>
