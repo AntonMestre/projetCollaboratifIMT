@@ -4,6 +4,9 @@ import json
 import random
 import string
 import time
+import asyncio
+from threading import Thread
+
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
@@ -21,8 +24,8 @@ def get_random_string(length):
 
 # Variables =======================================================================
 
-possibleSatutusOfQuizz = {1: "Waiting", 2: "Started"}
-statusOfQuizz = possibleSatutusOfQuizz.get(1)
+possibleSatusOfQuizz = {1: "Waiting", 2: "Started"}
+statusOfQuizz = possibleSatusOfQuizz.get(1)
 quizzId = get_random_string(4)
 quizzData = quiz_questions
 teams = [] 
@@ -52,6 +55,7 @@ def addPlayerToATeam(username, sid):
         if len(team["players"]) < numberOfPeoplePerTeam:
             team["players"].append({ "id": sid, "username": username})
             didFoundATeam = True
+            break
         
     # Adding on a new team
     if not didFoundATeam:
@@ -67,9 +71,19 @@ def findTeamNameOfPlayer(username):
 
     return userTeam
 
-def displayQuestionAndAnswers(question, answers):
+# findTeamIdOfPlayer : return the team id of a player
+def findTeamIdOfPlayer(username):
+    userTeam = ""
+    for team in teams:
+        for player in team["players"]:
+            if player["username"] == username:
+                userTeam = team["id"]
+                break
 
-    emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
+    return userTeam
+
+def displayQuestionAndAnswers(question, answers):
+    socketio.emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
 
 def displayProcessedAnswers():
 
@@ -97,7 +111,23 @@ def processGoodAnswerByTeams(correct):
         if goodAnswer == correct:
             teams[team]["numberOfGoodAnswer"] += 1
 
-
+def rollingTheQuizz():
+    with app.test_request_context():
+        for part in quizzData:
+            pourcentageAnswersForTheQuestion = {}
+            
+            ############### Phase 1
+            displayQuestionAndAnswers(part.get("question"), part.get("answers"))
+            time.sleep(15)
+            emit('phase1Ended', room=quizzId)
+            """
+            ############### Phase 2
+            displayProcessedAnswers()
+            time.sleep(25)
+            emit('phase2Ended', room=quizzId)
+            processGoodAnswerByTeams(correct)
+            ############### Phase 3
+            displayTheCorrectAnswer(correct)"""
 
 
 # Websockets Functions =======================================================================
@@ -128,32 +158,21 @@ def joinWaitingRoom():
 # startTheQuizz : Launch the quizz for all participants
 @socketio.on('startTheQuizz')
 def startTheQuizz():
+    statusOfQuizz = possibleSatusOfQuizz.get(2)
     emit('quizzHasStarted', room=quizzId)
+    emit('getStatusOfQuizz', statusOfQuizz, room=quizzId)
 
-    for id, question, answers, correct in quizzData:
-        pourcentageAnswersForTheQuestion = {}
-        
-        ############### Phase 1
-        displayQuestionAndAnswers(question, answers)
-        time.sleep(15)
-        emit('phase1Ended', room=quizzId)
-        ############### Phase 2
-        displayProcessedAnswers()
-        time.sleep(25)
-        emit('phase2Ended', room=quizzId)
-        processGoodAnswerByTeams(correct)
-        ############### Phase 3
-        displayTheCorrectAnswer(correct)
+    Thread(target=rollingTheQuizz).start()
 
-    # Rankings per team
+    """# Rankings per team
     ranking = sorted(teams, key=lambda x: x['numberOfGoodAnswer'], reverse=True)
-    emit('ranking', ranking, room=quizzId)
+    emit('ranking', ranking, room=quizzId)"""
 
 @socketio.on('sendAnswerPhase1')
 def sendAnswerPhase1(data):
-    # data : { username: "dzkoqd", teamId: "1234" , answers: [12, 14, 12, 14] }
+    # { "username": username, "answers": userAnswer}
     for team in pourcentageAnswersForTheQuestion:
-        if team == data.teamId:
+        if team == findTeamIdOfPlayer(data.username):
             pourcentageAnswersForTheQuestion[team][data.username] = data.answers
 
 @socketio.on('sendAnswerPhase2')
