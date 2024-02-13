@@ -17,7 +17,7 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
-# TODO: PROBLEME AVEC MES DICTIONNAIRES
+# TODO: PROBLEME AVEC MES DICTIONNAIRES + les noms de variables c'est pas du java ici
 
 # Variables =======================================================================
 
@@ -25,15 +25,17 @@ possibleSatutusOfQuizz = {1: "Waiting", 2: "Started"}
 statusOfQuizz = possibleSatutusOfQuizz.get(1)
 quizzId = get_random_string(4)
 quizzData = quiz_questions
-teams = {} 
-# teams = { 1234: 
-#    { 
-#    name: "dzqdzqd",
-#    players: { 1234: { username: "jean" },... },
-#    numberOfGoodAnswer: 0,
-#    },
-#    ...}
-#
+teams = [] 
+""" 
+teams = [
+     {
+        "id": "1234",
+        "name": "dzqdzqd",
+        "players": [ { id: 1234, username: "jean" },... ],
+        "numberOfGoodAnswer": 0,
+    },
+    ...]
+"""
 numberOfPeoplePerTeam = 2
 pourcentageAnswersForTheQuestion = {} # { 1234(team): { "usernmae124" : [12, 14, 14, 12] } }
 answersForTheQuestion = {} # { 1234(team): { "usernmae124" : 2 } }
@@ -46,24 +48,23 @@ def addPlayerToATeam(username, sid):
     didFoundATeam = False
 
     # Adding on an existing team
-    for name, players in teams:
-        if len(players) < numberOfPeoplePerTeam:
-            players.update({ sid : { "username": username }})
+    for team in teams:
+        if len(team["players"]) < numberOfPeoplePerTeam:
+            team["players"].append({ "id": sid, "username": username})
             didFoundATeam = True
-    
+        
     # Adding on a new team
     if not didFoundATeam:
-        teams.update({ "name": get_random_string(6), "players": { sid: { "username": username }} })
+        teams.append({ "id": get_random_string(4), "name": get_random_string(4), "players": [{ "id": sid, "username": username}], "numberOfGoodAnswer": 0})
 
 def findTeamNameOfPlayer(username):
-    userTeam = None
-    print(teams.values())
-    for name, players in teams.values():
-        for usernamePlayer in players:
-            if usernamePlayer == username:
-                userTeam = name
+    userTeam = ""
+    for team in teams:
+        for player in team["players"]:
+            if player["username"] == username:
+                userTeam = team["id"]
                 break
-    
+
     return userTeam
 
 def displayQuestionAndAnswers(question, answers):
