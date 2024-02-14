@@ -40,7 +40,8 @@ teams = [
     ...]
 """
 numberOfPeoplePerTeam = 2
-pourcentageAnswersForTheQuestion = {} # { 1234(team): { "usernmae124" : [12, 14, 14, 12] } }
+pourcentageAnswersForTheQuestion = [] # [ { "teamId" : 1234, "answersByPlayer": [ { "username" : 1224, "answers":[12, 14, 14, 12] }] } ] 
+# { 1234(team): { "usernmae124" : [12, 14, 14, 12] } }
 answersForTheQuestion = {} # { 1234(team): { "usernmae124" : 2 } }
 
 
@@ -86,21 +87,20 @@ def displayQuestionAndAnswers(question, answers):
     socketio.emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
 
 def displayProcessedAnswers():
+    print("Hey i send back")
+    answersProcessed = [] # [ { "teamId" : 1234, "answers": [12, 14, 14, 12] }
 
-    answersProcessed = {}
-
+    # for each team in pourcentageAnswersForTheQuestion
+    # calculate the sum for each answers divided by the number of players in the team
+    # and add it to the answersProcessed
     for team in pourcentageAnswersForTheQuestion:
-        sumTeam = [0, 0, 0, 0]
-        for user in team:
-            for i in range(4):
-                sumTeam[i] += pourcentageAnswersForTheQuestion[team][user][i]
-        
-        for i in range(4):
-            sumTeam[i] = sumTeam[i] / numberOfPeoplePerTeam
-        
-        answersProcessed.update({ team: sumTeam })
-        
-    emit('processedAnswers', answersProcessed, room=quizzId)
+        sumAnswers = [0, 0, 0, 0]
+        for player in team["answersByPlayer"]:
+            for i in range(len(player["answers"])):
+                sumAnswers[i] += player["answers"][i]
+        answersProcessed.append({ "teamId": team["teamId"], "answers": [ x / len(team["answersByPlayer"]) for x in sumAnswers ]})
+
+    socketio.emit('processedAnswers', answersProcessed, room=quizzId)
 
 def displayTheCorrectAnswer(correct):
     emit('correctAnswer', correct, room=quizzId)
@@ -114,15 +114,18 @@ def processGoodAnswerByTeams(correct):
 def rollingTheQuizz():
     with app.test_request_context():
         for part in quizzData:
-            pourcentageAnswersForTheQuestion = {}
+            pourcentageAnswersForTheQuestion = []
             
             ############### Phase 1
             displayQuestionAndAnswers(part.get("question"), part.get("answers"))
-            time.sleep(15)
-            emit('phase1Ended', room=quizzId)
-            """
+            time.sleep(5)
+            socketio.emit('phase1Ended', room=quizzId)
+            
             ############### Phase 2
+            time.sleep(2) # to be sure to have all answers
+            print(pourcentageAnswersForTheQuestion)
             displayProcessedAnswers()
+            """
             time.sleep(25)
             emit('phase2Ended', room=quizzId)
             processGoodAnswerByTeams(correct)
@@ -150,10 +153,12 @@ def joinWaitingRoom():
     
     addPlayerToATeam(username, request.sid)
     teamOfThePlayer = findTeamNameOfPlayer(username)
+    teamIdOfThePlayer = findTeamIdOfPlayer(username)
 
     emit('teams', teams, room=quizzId)
     emit('username', username)
     emit('userTeam', teamOfThePlayer)
+    emit('teamId', teamIdOfThePlayer)
 
 # startTheQuizz : Launch the quizz for all participants
 @socketio.on('startTheQuizz')
@@ -170,10 +175,18 @@ def startTheQuizz():
 
 @socketio.on('sendAnswerPhase1')
 def sendAnswerPhase1(data):
+    print("Hey i received")
     # { "username": username, "answers": userAnswer}
-    for team in pourcentageAnswersForTheQuestion:
-        if team == findTeamIdOfPlayer(data.username):
-            pourcentageAnswersForTheQuestion[team][data.username] = data.answers
+    teamOfThePlayer = findTeamIdOfPlayer(data["username"])
+    
+    # if the team is not in the list of pourcentageAnswersForTheQuestion
+    # add it with the username and the answers to match  [ { "teamId" : 1234, "answersByPlayer": [ { "username" : 1224, "answers":[12, 14, 14, 12] }] } ] 
+    if teamOfThePlayer not in pourcentageAnswersForTheQuestion:
+        pourcentageAnswersForTheQuestion.append({ "teamId": teamOfThePlayer, "answersByPlayer": [{ "username": data["username"], "answers": data["answers"] }]})
+    else:
+        for team in pourcentageAnswersForTheQuestion:
+            if team["teamId"] == teamOfThePlayer:
+                team["answersByPlayer"].append({ "username": data["username"], "answers": data["answers"] })
 
 @socketio.on('sendAnswerPhase2')
 def sendAnswerPhase2(data):

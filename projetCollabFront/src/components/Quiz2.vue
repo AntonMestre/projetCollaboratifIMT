@@ -9,7 +9,10 @@ const teamOfThePlayer = ref('');
 const isInTheWaitingRoom = ref(false);
 const actualQuestion = ref('');
 const actualAnswers = ref([]);
-const userAnswer = ref([]);
+const userAnswer = ref([0,0,0,0]);
+const phase = ref('');
+const teamIdOfThePlayer = ref('');
+const confidenceOfTheTeamOnTheAnswer = ref([]);
 
 /* Status Of Quizz part */
 const getStatusOfQuizz = () => {
@@ -30,13 +33,16 @@ socket.on('userTeam', (data) => {
 socket.on('username', (data) => {
     username.value = data;
 });
+socket.on('teamId', (data) => {
+    teamIdOfThePlayer.value = data;
+});
 
 /* Start Quizz part */
 const startQuizz = () => {
     socket.emit('startTheQuizz');
 };
 socket.on('quizzHasStarted', () => {
-    
+    phase.value = 'phase1';
 });
 socket.on('questionAndAnswers', (data) => {
     console.log(data)
@@ -47,10 +53,18 @@ socket.on('questionAndAnswers', (data) => {
 /* Quizz rolling */
 socket.on('phase1Ended', (data) => {
     // verifier les valeurs des answersj'attend [15, 22, 39, 45]
-    console.log(userAnswer);
-    emit('sendAnswerPhase1', { "username": username, "answers": userAnswer});
+    phase.value = 'phase2';
+    // convert string to numbers in the array userAnswer
+    userAnswer.value = userAnswer.value.map(Number);
+    
+    socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});
 });
-
+socket.on('processedAnswers', (data) => {
+    // find by the answers array the team of the user in the data wich is in the form of [ { "teamId" : 1234, "answers": [12, 14, 14, 12] } ]
+    console.log(teamIdOfThePlayer.value);
+    let team = data.find(team => team.teamId == teamIdOfThePlayer.value);
+    confidenceOfTheTeamOnTheAnswer.value = team.answers;
+});
 
 getStatusOfQuizz();
 </script>
@@ -69,20 +83,52 @@ getStatusOfQuizz();
         <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Lancer le quizz</button>
     </div>
     <!-- QUIZZ PART -->
-    <div v-if="statusOfQuizz == 'Started'">
+    <div v-if="statusOfQuizz == 'Started' && phase == 'phase1'">
         <div>
             <p>Question : {{ actualQuestion }}</p>
             <p>
                 <div class="slidecontainer">
                     <ul>
-                        <li v-for="(answer, index) in actualAnswers" :key="answer.id" >
-                            <label :for="answer.id">{{ answer.answer }}</label>
-                            <input type="range" min="1" max="100" value="50" :id="answer.id" :name="answer.id" v-model="userAnswer[answer]">
+                        <li>
+                            <label >{{ actualAnswers[0].answer }}</label> 
+                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[0]">
+                        </li>
+                        <li>
+                            <label >{{ actualAnswers[1].answer }}</label> 
+                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[1]">
+                        </li>
+                        <li>
+                            <label >{{ actualAnswers[2].answer }}</label> 
+                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[2]">
+                        </li>
+                        <li>
+                            <label >{{ actualAnswers[3].answer }}</label> 
+                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[3]">
                         </li>
                     </ul>
                 </div>
             </p>
         </div>
+    </div>
+    <div v-if="statusOfQuizz == 'Started' && phase == 'phase2'">
+        <ul>
+            <li>
+                <label >{{ actualAnswers[0].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[0] }}</label> 
+                <input type="radio" min="1" id="answer.id" >
+            </li>
+            <li>
+                <label >{{ actualAnswers[1].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[1] }}</label> 
+                <input type="radio" min="1" id="answer.id" >
+            </li>
+            <li>
+                <label >{{ actualAnswers[2].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[2] }}</label> 
+                <input type="radio" min="1" id="answer.id" >
+            </li>
+            <li>
+                <label >{{ actualAnswers[3].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[3] }}</label> 
+                <input type="radio" min="1" id="answer.id" >
+            </li>
+        </ul>
     </div>
 </template>
 <style>
