@@ -4,9 +4,7 @@ import json
 import random
 import string
 import time
-import asyncio
 from threading import Thread
-
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="http://localhost:5173")
@@ -42,8 +40,7 @@ teams = [
 numberOfPeoplePerTeam = 2
 pourcentageAnswersForTheQuestion = [] # [ { "teamId" : 1234, "answersByPlayer": [ { "username" : 1224, "answers":[12, 14, 14, 12] }] } ] 
 # { 1234(team): { "usernmae124" : [12, 14, 14, 12] } }
-answersForTheQuestion = {} # { 1234(team): { "usernmae124" : 2 } }
-
+finalAnswersForTheQuestion = [] # [ { "teamId" : 1234, "finalAnswers": [{ "username": 1234, answer:"" }] } ]
 
 # USEFULL Functions =======================================================================
 
@@ -87,7 +84,6 @@ def displayQuestionAndAnswers(question, answers):
     socketio.emit('questionAndAnswers', { "question" : question, "answers" : answers}, room=quizzId)
 
 def displayProcessedAnswers():
-    print("Hey i send back")
     answersProcessed = [] # [ { "teamId" : 1234, "answers": [12, 14, 14, 12] }
 
     # for each team in pourcentageAnswersForTheQuestion
@@ -103,18 +99,38 @@ def displayProcessedAnswers():
     socketio.emit('processedAnswers', answersProcessed, room=quizzId)
 
 def displayTheCorrectAnswer(correct):
-    emit('correctAnswer', correct, room=quizzId)
+    # in quizzData find the correct answer
+    for part in quizzData:
+        for answer in part.get("answers"):
+            if answer.get("id") == correct:
+                socketio.emit('correctAnswer', answer, room=quizzId)
+                break
 
 def processGoodAnswerByTeams(correct):
-    for team in answersForTheQuestion:
-        goodAnswer = max(answersForTheQuestion[team], key=answersForTheQuestion[team].get)
-        if goodAnswer == correct:
-            teams[team]["numberOfGoodAnswer"] += 1
+    # finalAnswersForTheQuestion  = [ { "teamId" : 1234, "finalAnswers": [{ "username": 1234, answer:"" }] } ]
+    # for each team: calculate the most reprensentative answer
+    # if the answer is the good one -> add 1 to the numberOfGoodAnswer
+    print(finalAnswersForTheQuestion)
+    for team in finalAnswersForTheQuestion:
+        possible_answers = set(answer["answer"] for answer in team["finalAnswers"])
+        print(possible_answers)
+        mostRepresentativeAnswer = max(possible_answers, key=team["finalAnswers"].count)
+        print(mostRepresentativeAnswer)
+        print(correct)
+        if mostRepresentativeAnswer == correct:
+            for teamInTeams in teams:
+                if teamInTeams["id"] == team["teamId"]:
+                    teamInTeams["numberOfGoodAnswer"] += 1
+
+def displayTheRanking():
+    ranking = sorted(teams, key=lambda x: x['numberOfGoodAnswer'], reverse=True)
+    socketio.emit('ranking', ranking, room=quizzId)
 
 def rollingTheQuizz():
     with app.test_request_context():
         for part in quizzData:
             pourcentageAnswersForTheQuestion = []
+            finalAnswersForTheQuestion = []
             
             ############### Phase 1
             displayQuestionAndAnswers(part.get("question"), part.get("answers"))
@@ -122,16 +138,19 @@ def rollingTheQuizz():
             socketio.emit('phase1Ended', room=quizzId)
             
             ############### Phase 2
-            time.sleep(2) # to be sure to have all answers
-            print(pourcentageAnswersForTheQuestion)
+            time.sleep(1) # to be sure to have all answers
             displayProcessedAnswers()
-            """
-            time.sleep(25)
-            emit('phase2Ended', room=quizzId)
-            processGoodAnswerByTeams(correct)
+            
+            time.sleep(5)
+            socketio.emit('phase2Ended', room=quizzId)
+            time.sleep(1) # to be sure to have all answers
+            processGoodAnswerByTeams(part.get("correctID"))
+            
             ############### Phase 3
-            displayTheCorrectAnswer(correct)"""
-
+            print("not hello")
+            displayTheCorrectAnswer(part.get("correctID"))
+            displayTheRanking()
+            time.sleep(6)
 
 # Websockets Functions =======================================================================
 
@@ -175,7 +194,6 @@ def startTheQuizz():
 
 @socketio.on('sendAnswerPhase1')
 def sendAnswerPhase1(data):
-    print("Hey i received")
     # { "username": username, "answers": userAnswer}
     teamOfThePlayer = findTeamIdOfPlayer(data["username"])
     
@@ -190,10 +208,10 @@ def sendAnswerPhase1(data):
 
 @socketio.on('sendAnswerPhase2')
 def sendAnswerPhase2(data):
-    # data : { username: "dzkoqd", teamId: "1234" , answers: 2 }
-    for team in answersForTheQuestion:
-        if team == data.teamId:
-            answersForTheQuestion[team][data.username] = data.answers
+    # { "username": username, "finalAnswer": finalAnswer}
+    teamOfThePlayer = findTeamIdOfPlayer(data["username"])
+    print("hello")
+    finalAnswersForTheQuestion.append({ "teamId": teamOfThePlayer, "finalAnswers": [{ "username": data["username"], "answer": data["finalAnswer"] }]})
 
 if __name__ == '__main__':
     socketio.run(app)

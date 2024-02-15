@@ -13,6 +13,10 @@ const userAnswer = ref([0,0,0,0]);
 const phase = ref('');
 const teamIdOfThePlayer = ref('');
 const confidenceOfTheTeamOnTheAnswer = ref([]);
+const isProcessingAnswersOfPhase1 = ref(false);
+const finalAnswer = ref('');
+const correctAnswer = ref('');
+const ranking = ref([]);
 
 /* Status Of Quizz part */
 const getStatusOfQuizz = () => {
@@ -54,6 +58,7 @@ socket.on('questionAndAnswers', (data) => {
 socket.on('phase1Ended', (data) => {
     // verifier les valeurs des answersj'attend [15, 22, 39, 45]
     phase.value = 'phase2';
+    isProcessingAnswersOfPhase1.value = true;
     // convert string to numbers in the array userAnswer
     userAnswer.value = userAnswer.value.map(Number);
     
@@ -64,6 +69,17 @@ socket.on('processedAnswers', (data) => {
     console.log(teamIdOfThePlayer.value);
     let team = data.find(team => team.teamId == teamIdOfThePlayer.value);
     confidenceOfTheTeamOnTheAnswer.value = team.answers;
+    isProcessingAnswersOfPhase1.value = false;
+});
+socket.on('phase2Ended', (data) => {
+    phase.value = 'phase3';
+    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
+});
+socket.on('correctAnswer', (data) => {
+    correctAnswer.value = data;
+});
+socket.on('ranking', (data) => {
+    ranking.value = data;
 });
 
 getStatusOfQuizz();
@@ -110,24 +126,31 @@ getStatusOfQuizz();
             </p>
         </div>
     </div>
-    <div v-if="statusOfQuizz == 'Started' && phase == 'phase2'">
+    <div v-if="statusOfQuizz == 'Started' && phase == 'phase2' && !isProcessingAnswersOfPhase1">
         <ul>
             <li>
                 <label >{{ actualAnswers[0].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[0] }}</label> 
-                <input type="radio" min="1" id="answer.id" >
+                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="1">
             </li>
             <li>
                 <label >{{ actualAnswers[1].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[1] }}</label> 
-                <input type="radio" min="1" id="answer.id" >
+                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="2">
             </li>
             <li>
                 <label >{{ actualAnswers[2].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[2] }}</label> 
-                <input type="radio" min="1" id="answer.id" >
+                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="3">
             </li>
             <li>
                 <label >{{ actualAnswers[3].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[3] }}</label> 
-                <input type="radio" min="1" id="answer.id" >
+                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="4">
             </li>
+        </ul>
+    </div>
+    <div v-if="statusOfQuizz == 'Started' && phase == 'phase3'">
+        <p>La bonne réponse était:  {{ correctAnswer.answer }}</p>
+        <p>Classement: {{ console.log(ranking) }}</p>
+        <ul>
+            <li v-for="team in ranking">{{ team.id }} - {{ team.numberOfGoodAnswer }}</li>
         </ul>
     </div>
 </template>
