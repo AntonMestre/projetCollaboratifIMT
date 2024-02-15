@@ -2,19 +2,41 @@
     {
         "id": 1,
         "question": "What is the capital of France?",
-        "answers": ["London", "Paris", "Berlin", "Madrid"],
-        "correct": 1
+        "answers": [
+            {"id": 1, "answer": "London"},
+            {"id": 2, "answer": "Paris"}, 
+            {"id": 3, "answer": "Berlin"},
+            {"id": 4, "answer": "Madrid"}],
+        "correctID": 2
     },
     {
         "id": 2,
-        "question": "What is the largest planet in the Solar System?",
-        "answers": ["Venus", "Mars", "Jupiter", "Saturn"],
-        "correct": 2
+        "question": "What is the capital of Germany?",
+        "answers": [
+            {"id": 1, "answer": "London"},
+            {"id": 2, "answer": "Paris"}, 
+            {"id": 3, "answer": "Berlin"},
+            {"id": 4, "answer": "Madrid"}],
+        "correctID": 3
     },
     {
         "id": 3,
-        "question": "Which is the longest river in the world?",
-        "answers": ["Nile", "Amazon", "Yangtze", "Mississippi"],
-        "correct": 0
+        "question": "What is the capital of Spain?",
+        "answers": [
+            {"id": 1, "answer": "London"},
+            {"id": 2, "answer": "Paris"}, 
+            {"id": 3, "answer": "Berlin"},
+            {"id": 4, "answer": "Madrid"}],
+        "correctID": 4
+    },
+    {
+        "id": 4,
+        "question": "What is the capital of England?",
+        "answers": [
+            {"id": 1, "answer": "London"},
+            {"id": 2, "answer": "Paris"}, 
+            {"id": 3, "answer": "Berlin"},
+            {"id": 4, "answer": "Madrid"}],
+        "correctID": 1
     }
 ]

@@ -1,12 +1,11 @@
 <template>
     <div id="app">
-      <Quiz/>
+      <Quizz/>
     </div>
   </template>
   
   <script setup>
-  //import Quiz from './components/Quiz.vue';
-  import Quiz from './components/Quiz2.vue';
+  import Quizz from './components/Quizz.vue';
   </script>
   
   <style>
