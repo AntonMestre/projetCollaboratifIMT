@@ -55,6 +55,9 @@ socket.on('questionAndAnswers', (data) => {
 });
 
 /* Quizz rolling */
+socket.on("phase1Starting", (data) => {
+    phase.value = 'phase1';
+});
 socket.on('phase1Ended', (data) => {
     // verifier les valeurs des answersj'attend [15, 22, 39, 45]
     phase.value = 'phase2';
