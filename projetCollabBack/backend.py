@@ -18,6 +18,10 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
+def get_random_color():
+    color = "%06x" % random.randint(0, 0xFFFFFF)
+    return color
+
 # Variables =======================================================================
 possibleSatusOfQuizz = {1: "Waiting", 2: "Started"}
 statusOfQuizz = possibleSatusOfQuizz.get(1)
@@ -39,7 +43,7 @@ def addPlayerToATeam(username, sid):
             break
         
     if not didFoundATeam:
-        teams.append({ "id": get_random_string(4), "name": get_random_string(4), "players": [{ "id": sid, "username": username}], "numberOfGoodAnswer": 0})
+        teams.append({ "id": get_random_string(4), "name": get_random_string(4), "color": get_random_color(), "players": [{ "id": sid, "username": username}], "numberOfGoodAnswer": 0})
 
 def findTeamNameOfPlayer(username):
     userTeam = ""
