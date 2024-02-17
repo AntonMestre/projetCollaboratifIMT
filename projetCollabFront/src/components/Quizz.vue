@@ -115,9 +115,11 @@ getStatusOfQuizz();
                 </div>
             </div>
             <div id="instructions-container">
-                <div>
-                    <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Lancer le quizz</button>
+                <div id="instructions">
+                    <h2>How to play ???</h2>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec dapibus eros ut dapibus placerat. Morbi fermentum molestie interdum. Etiam tempor, lectus quis scelerisque volutpat, odio purus sagittis lacus, finibus finibus sem lectus in justo. Praesent sollicitudin imperdiet neque vitae vestibulum.</p>
                 </div>
+                <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Start the quizz →</button>
             </div>
         </div>
     </div>
@@ -199,7 +201,7 @@ getStatusOfQuizz();
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: 8vh;
+    height: 6vw;
     margin-top: 3vh;
     column-gap: 1vw;
 }
@@ -290,5 +292,45 @@ getStatusOfQuizz();
     border-radius: 4px;
     font-size: 1.2em;
     padding: 1vh 1vw;
+}
+
+#instructions-container {
+    display: flex;
+    flex-direction: column;
+    width: 35%;
+}
+
+#instructions {
+    background-color: white;
+    border-radius: 4px;
+    padding: 3vh 3vw;
+}
+
+#instructions h2 {
+    font-size: 2rem;
+    margin: 0;
+    text-align: center;
+    font-weight: normal;
+}
+
+#instructions p {
+    margin: 0;
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+    text-align: justify;
+    font-family: "Roboto", sans-serif;
+    font-weight: lighter;
+}
+
+#instructions-container button {
+    background-color: #7000FF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 1.5vh 2vw;
+    font-size: 1.3rem;
+    margin-top: 8vh;
+    transition: background-color 0.3s;
+    font-family: "Londrina Solid", sans-serif;
 }
 </style>
