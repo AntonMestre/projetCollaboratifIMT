@@ -19,6 +19,13 @@ const finalAnswer = ref('');
 const correctAnswer = ref('');
 const ranking = ref([]);
 
+const answerColors = [
+    '#FF203B',
+    '#6AC03B',
+    '#FEC00A',
+    '#45A2E5',
+];
+
 /* Status Of Quizz part */
 const getStatusOfQuizz = () => {
     socket.emit('getStatusOfQuizz');
@@ -65,12 +72,12 @@ socket.on("phase1Starting", (data) => {
 });
 socket.on('phase1Ended', (data) => {
     // verifier les valeurs des answersj'attend [15, 22, 39, 45]
-    phase.value = 'phase2';
+/*    phase.value = 'phase2';
     isProcessingAnswersOfPhase1.value = true;
     // convert string to numbers in the array userAnswer
     userAnswer.value = userAnswer.value.map(Number);
     
-    socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});
+    socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});*/
 });
 socket.on('processedAnswers', (data) => {
     // find by the answers array the team of the user in the data wich is in the form of [ { "teamId" : 1234, "answers": [12, 14, 14, 12] } ]
@@ -80,8 +87,8 @@ socket.on('processedAnswers', (data) => {
     isProcessingAnswersOfPhase1.value = false;
 });
 socket.on('phase2Ended', (data) => {
-    phase.value = 'phase3';
-    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
+/*    phase.value = 'phase3';
+    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});*/
 });
 socket.on('correctAnswer', (data) => {
     correctAnswer.value = data;
@@ -124,31 +131,27 @@ getStatusOfQuizz();
         </div>
     </div>
     <!-- QUIZZ PART -->
-    <div v-if="statusOfQuizz == 'Started' && phase == 'phase1'">
-        <div>
-            <p>Question : {{ actualQuestion }}</p>
-            <p>
-                <div class="slidecontainer">
-                    <ul>
-                        <li>
-                            <label >{{ actualAnswers[0].answer }}</label> 
-                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[0]">
-                        </li>
-                        <li>
-                            <label >{{ actualAnswers[1].answer }}</label> 
-                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[1]">
-                        </li>
-                        <li>
-                            <label >{{ actualAnswers[2].answer }}</label> 
-                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[2]">
-                        </li>
-                        <li>
-                            <label >{{ actualAnswers[3].answer }}</label> 
-                            <input type="range" min="1" max="100" value="0" id="answer.id" v-model="userAnswer[3]">
-                        </li>
-                    </ul>
+    <div v-if="statusOfQuizz == 'Started' && phase == 'phase1'" class="quizz-container">
+        <div id="quizz-header">
+            <h3>Round 1</h3>
+            <h1>{{ actualQuestion }}</h1>
+            <div id="counter">20</div>
+        </div>
+        <div class="answers-container">
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}">
+                <h3>{{ answer.answer }}</h3>
+                <div class="range-container">
+                    <p>Sure at <span>0%</span></p>
+                    <div class="range-input-container">
+                        <div>0%</div>
+                        <input type="range" min="1" max="100" value="0" :id="'answer' + index" v-model="userAnswer[index]">
+                        <div>100%</div>
+                    </div>
                 </div>
-            </p>
+            </div>
+            <div id="quizz-percentage-to-distribute">
+                <span>100%</span> to distribute
+            </div>
         </div>
     </div>
     <div v-if="statusOfQuizz == 'Started' && phase == 'phase2' && !isProcessingAnswersOfPhase1">
@@ -333,4 +336,131 @@ getStatusOfQuizz();
     transition: background-color 0.3s;
     font-family: "Londrina Solid", sans-serif;
 }
+
+.quizz-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.quizz-container #quizz-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    text-align: center;
+    background-color: white;
+    padding: 2vh 2vw;
+}
+
+#quizz-header h1 {
+    font-size: 3rem;
+    color: #7000FF;
+    font-weight: normal;
+    margin: 0;
+}
+
+#quizz-header h3 {
+    font-size: 2rem;
+    color: #B5B5B5;
+    font-weight: normal;
+    margin: 0;
+}
+
+#quizz-header #counter {
+    font-size: 1.6rem;
+    color: white;
+    font-weight: normal;
+    background-color: #7000FF;
+    border-radius: 50%;
+    width: 5vw;
+    height: 5vw;
+    padding: 1vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.answers-container {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100%;
+    margin: 4vh 6vw;
+    column-gap: 3vw;
+    row-gap: 3vw;
+}
+
+.answers-container h3 {
+    font-size: 3rem;
+    color: white;
+    font-weight: normal;
+    margin: 0;
+}
+
+.answer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2vh 2vw;
+    border-radius: 4px;
+    transition: opacity 0.2s;
+}
+
+.answer-container:not(:hover) {
+    opacity: 0.5;
+}
+
+.range-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    color: white;
+    transition: opacity 0.3s; /* animate the opacity change */
+}
+
+.range-container span {
+    font-size: 1.5rem;
+    font-weight: normal;
+}
+
+.range-input-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    column-gap: 1vw;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: normal;
+    width: 90%;
+    display: flex;
+}
+
+.range-input-container input[type="range"] {
+    width: 100%;
+}
+
+
+#quizz-percentage-to-distribute {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 1.5vh 2vw;
+    background-color: white;
+    color: black;
+    font-size: 1.5rem;
+    border-radius: 10px;
+    border: #E9E9E9 10px solid;
+}
+
+#quizz-percentage-to-distribute span {
+    color: #7000FF;
+}
+
 </style>
