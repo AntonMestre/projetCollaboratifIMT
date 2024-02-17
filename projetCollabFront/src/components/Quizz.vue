@@ -5,12 +5,13 @@ import io from 'socket.io-client';
 const socket = io.connect('http://localhost:5000');
 const statusOfQuizz = ref(false);
 const username = ref('');
+const teams = ref([]);
 const teamOfThePlayer = ref('');
 const isInTheWaitingRoom = ref(false);
 const actualQuestion = ref('');
 const actualAnswers = ref([]);
 const userAnswer = ref([0,0,0,0]);
-const phase = ref('');
+    const phase = ref('');
 const teamIdOfThePlayer = ref('');
 const confidenceOfTheTeamOnTheAnswer = ref([]);
 const isProcessingAnswersOfPhase1 = ref(false);
@@ -39,6 +40,10 @@ socket.on('username', (data) => {
 });
 socket.on('teamId', (data) => {
     teamIdOfThePlayer.value = data;
+});
+socket.on('teams', (data) => {
+    teams.value = data;
+    console.log(data);
 });
 
 /* Start Quizz part */
@@ -88,18 +93,33 @@ socket.on('ranking', (data) => {
 getStatusOfQuizz();
 </script>
 <template>
-    <h1>QUIZZ</h1>
     <div v-if="!teamOfThePlayer && statusOfQuizz == 'Started'">Le quizz a commencé, merci d'attendre</div>
-    <div v-else>
-        <button v-if="!isInTheWaitingRoom" @click="joinQuiz">Rejoindre la salle d'attente du quizz</button>
+    <div v-if="!isInTheWaitingRoom && statusOfQuizz != 'Started'" id="join-quizz">
+        <h1>Enter your pseudo</h1>
+        <div id="join-quizz-inputs">
+            <input type="text" placeholder="Pseudo">
+            <button @click="joinQuiz">→</button>
+        </div>
     </div>
-    <div v-if="teamOfThePlayer && statusOfQuizz == 'Waiting'">
-        <p>Vous êtes dans l'équipe : {{ teamOfThePlayer }}</p>
-        <p>Votre nom d'utilisateur est : {{ username }}</p>
-        <p>Vous etes dans la salle d'attente</p>
-    </div>
-    <div>
-        <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Lancer le quizz</button>
+    <div v-if="teamOfThePlayer && statusOfQuizz == 'Waiting'" id="waiting-room">
+        <h1>Waiting room</h1>
+        <div id="waiting-room-container">
+            <div id="teams-container">
+                <div v-for="team in teams" :key="team.id" class="team">
+                    <h3 :style="{ color: '#' + team.color }">{{ team.name }}</h3>
+                    <div class="teammates-container">
+                        <div v-for="teammate in team.players" :key="teammate.id" class="teammate" :style="{ backgroundColor: '#' + team.color }">
+                            {{ teammate.username }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="instructions-container">
+                <div>
+                    <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Lancer le quizz</button>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- QUIZZ PART -->
     <div v-if="statusOfQuizz == 'Started' && phase == 'phase1'">
@@ -158,4 +178,117 @@ getStatusOfQuizz();
     </div>
 </template>
 <style>
+#join-quizz {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #7000FF;
+}
+
+#join-quizz h1 {
+    color: white;
+    font-weight: normal;
+    font-size: 3rem;
+    margin: 0;
+}
+
+#join-quizz-inputs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 8vh;
+    margin-top: 3vh;
+    column-gap: 1vw;
+}
+
+#join-quizz-inputs input, #join-quizz-inputs button {
+    padding: 10px;
+    border: none;
+    border-radius: 2px;
+    font-size: 2rem;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#join-quizz-inputs input {
+    color: black;
+    font-family: "Londrina Solid", sans-serif;
+    text-align: center;
+}
+
+#join-quizz-inputs input:focus {
+    outline: none;
+}
+
+#join-quizz-inputs input::placeholder {
+    color: black;
+    font-family: "Londrina Solid", sans-serif;
+    font-size: 2rem;
+    text-align: center;
+}
+
+#join-quizz-inputs button {
+    color: #7000FF;
+    background-color: white;
+    aspect-ratio: 1/1;
+    transition: background-color 0.3s;
+}
+
+#join-quizz-inputs button:hover {
+    background-color: #E0E0E0;
+}
+
+#waiting-room {
+    height: 100vh;
+}
+#waiting-room h1 {
+    font-size: 3rem;
+    margin: 0;
+    text-align: center;
+    background-color: white;
+    color: #7000FF;
+    font-weight: normal;
+    padding: 2vh 0;
+}
+
+#waiting-room-container {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10vh;
+    margin-left: 4vw;
+    margin-right: 4vw;
+}
+
+#teams-container {
+    display: flex;
+    flex-direction: column;
+    width: 65%;
+}
+
+.team {
+    margin-bottom: 3vh;
+}
+
+#teams-container h3 {
+    font-size: 1.5rem;
+    margin: 0;
+    padding: 1vh 0;
+}
+
+.teammates-container {
+    display: flex;
+    flex-direction: row;
+    column-gap: 1vw;
+    align-items: center;
+}
+
+.teammate {
+    color: white;
+    border-radius: 4px;
+    font-size: 1.2em;
+    padding: 1vh 1vw;
+}
 </style>
