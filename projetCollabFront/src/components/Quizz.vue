@@ -87,8 +87,8 @@ socket.on('processedAnswers', (data) => {
     isProcessingAnswersOfPhase1.value = false;
 });
 socket.on('phase2Ended', (data) => {
-    phase.value = 'phase3';
-    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
+/*    phase.value = 'phase3';
+    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});*/
 });
 socket.on('correctAnswer', (data) => {
     correctAnswer.value = data;
@@ -156,7 +156,7 @@ getStatusOfQuizz();
     </div>
     <div id="phase2" v-if="statusOfQuizz == 'Started' && phase == 'phase2' && !isProcessingAnswersOfPhase1" class="quizz-container">
         <div id="quizz-header">
-            <h3>Round 1</h3>
+            <h3>Round 2</h3>
             <h1>{{ actualQuestion }}</h1>
             <div id="counter">20</div>
         </div>
@@ -400,7 +400,8 @@ getStatusOfQuizz();
     justify-content: center;
     padding: 2vh 2vw;
     border-radius: 4px;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, outline-width 0.1s;
+    outline: #7000FF 0 solid;
 }
 
 #phase2 .answer-container {
@@ -409,6 +410,8 @@ getStatusOfQuizz();
 
 .answer-container.selected {
     opacity: 1 !important;
+    outline: #7000FF 5px solid;
+
 }
 
 .answer-container:not(:hover) {
