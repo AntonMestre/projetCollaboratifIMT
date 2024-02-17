@@ -72,12 +72,12 @@ socket.on("phase1Starting", (data) => {
 });
 socket.on('phase1Ended', (data) => {
     // verifier les valeurs des answersj'attend [15, 22, 39, 45]
-/*    phase.value = 'phase2';
+    phase.value = 'phase2';
     isProcessingAnswersOfPhase1.value = true;
     // convert string to numbers in the array userAnswer
     userAnswer.value = userAnswer.value.map(Number);
     
-    socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});*/
+    socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});
 });
 socket.on('processedAnswers', (data) => {
     // find by the answers array the team of the user in the data wich is in the form of [ { "teamId" : 1234, "answers": [12, 14, 14, 12] } ]
@@ -87,8 +87,8 @@ socket.on('processedAnswers', (data) => {
     isProcessingAnswersOfPhase1.value = false;
 });
 socket.on('phase2Ended', (data) => {
-/*    phase.value = 'phase3';
-    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});*/
+    phase.value = 'phase3';
+    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
 });
 socket.on('correctAnswer', (data) => {
     correctAnswer.value = data;
@@ -154,25 +154,18 @@ getStatusOfQuizz();
             </div>
         </div>
     </div>
-    <div v-if="statusOfQuizz == 'Started' && phase == 'phase2' && !isProcessingAnswersOfPhase1">
-        <ul>
-            <li>
-                <label >{{ actualAnswers[0].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[0] }}</label> 
-                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="1">
-            </li>
-            <li>
-                <label >{{ actualAnswers[1].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[1] }}</label> 
-                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="2">
-            </li>
-            <li>
-                <label >{{ actualAnswers[2].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[2] }}</label> 
-                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="3">
-            </li>
-            <li>
-                <label >{{ actualAnswers[3].answer }} | Confidence of the team: {{ confidenceOfTheTeamOnTheAnswer[3] }}</label> 
-                <input type="radio" v-model="finalAnswer" name="finalAnswer" :value="4">
-            </li>
-        </ul>
+    <div id="phase2" v-if="statusOfQuizz == 'Started' && phase == 'phase2' && !isProcessingAnswersOfPhase1" class="quizz-container">
+        <div id="quizz-header">
+            <h3>Round 1</h3>
+            <h1>{{ actualQuestion }}</h1>
+            <div id="counter">20</div>
+        </div>
+        <div class="answers-container">
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': finalAnswer == index + 1 }" @click="() => {finalAnswer = (index + 1).toString(); console.log(finalAnswer)}">
+                <h3>{{answer.answer}}</h3>
+                <p class="answer-confidence">{{confidenceOfTheTeamOnTheAnswer[index]}} % confidence</p>
+            </div>
+        </div>
     </div>
     <div v-if="statusOfQuizz == 'Started' && phase == 'phase3'">
         <p>La bonne réponse était:  {{ correctAnswer.answer }}</p>
@@ -410,6 +403,14 @@ getStatusOfQuizz();
     transition: opacity 0.2s;
 }
 
+#phase2 .answer-container {
+    cursor: pointer;
+}
+
+.answer-container.selected {
+    opacity: 1 !important;
+}
+
 .answer-container:not(:hover) {
     opacity: 0.5;
 }
@@ -461,6 +462,13 @@ getStatusOfQuizz();
 
 #quizz-percentage-to-distribute span {
     color: #7000FF;
+}
+
+.answer-confidence {
+    font-size: 2rem;
+    color: white;
+    font-weight: normal;
+    margin: 0;
 }
 
 </style>
