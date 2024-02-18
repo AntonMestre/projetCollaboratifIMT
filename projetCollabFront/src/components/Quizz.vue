@@ -87,8 +87,8 @@ socket.on('processedAnswers', (data) => {
     isProcessingAnswersOfPhase1.value = false;
 });
 socket.on('phase2Ended', (data) => {
-/*    phase.value = 'phase3';
-    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});*/
+    phase.value = 'phase3';
+    socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
 });
 socket.on('correctAnswer', (data) => {
     correctAnswer.value = data;
@@ -197,7 +197,7 @@ getStatusOfQuizz();
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: 6vw;
+    height: 10%;
     margin-top: 3vh;
     column-gap: 1vw;
 }
