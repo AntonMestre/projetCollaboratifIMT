@@ -102,11 +102,16 @@ def displayTheRanking():
     ranking = sorted(teams, key=lambda x: x['numberOfGoodAnswer'], reverse=True)
     socketio.emit('ranking', ranking, room=quizzId)
 
+def resetValuesOfAnswers():
+    global pourcentageAnswersForTheQuestion
+    pourcentageAnswersForTheQuestion = []
+    global finalAnswersForTheQuestion
+    finalAnswersForTheQuestion = []
+
 def rollingTheQuizz():
     with app.test_request_context():
         for part in quizzData:
-            pourcentageAnswersForTheQuestion = []
-            finalAnswersForTheQuestion = []
+            resetValuesOfAnswers()
 
             socketio.emit('phase1Starting', room=quizzId)
             displayQuestionAndAnswers(part.get("question"), part.get("answers"))
@@ -160,13 +165,14 @@ def startTheQuizz():
 @socketio.on('sendAnswerPhase1')
 def sendAnswerPhase1(data):
     teamOfThePlayer = findTeamIdOfPlayer(data["username"])
+
+    for team in pourcentageAnswersForTheQuestion:
+        if team["teamId"] == teamOfThePlayer:
+            team["answersByPlayer"].append({ "username": data["username"], "answers": data["answers"] })
+            return
     
-    if teamOfThePlayer not in pourcentageAnswersForTheQuestion:
-        pourcentageAnswersForTheQuestion.append({ "teamId": teamOfThePlayer, "answersByPlayer": [{ "username": data["username"], "answers": data["answers"] }]})
-    else:
-        for team in pourcentageAnswersForTheQuestion:
-            if team["teamId"] == teamOfThePlayer:
-                team["answersByPlayer"].append({ "username": data["username"], "answers": data["answers"] })
+    pourcentageAnswersForTheQuestion.append({ "teamId": teamOfThePlayer, "answersByPlayer": [{ "username": data["username"], "answers": data["answers"] }]})
+
 
 @socketio.on('sendAnswerPhase2')
 def sendAnswerPhase2(data):
