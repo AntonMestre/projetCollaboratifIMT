@@ -19,6 +19,7 @@ const finalAnswer = ref('');
 const correctAnswer = ref('');
 const ranking = ref([]);
 const quizzEnded = ref(false);
+const answersOfTheTeamsForTheCurrentQuestion = ref([]);
 
 const answerColors = [
     '#FF203B',
@@ -100,6 +101,9 @@ socket.on('ranking', (data) => {
 socket.on('quizzEnded', (data) => {
     console.log("quiz ended")
     quizzEnded.value = true;
+});
+socket.on('answersOfTheTeams', (data) => {
+    answersOfTheTeamsForTheCurrentQuestion.value = data;
 });
 
 getStatusOfQuizz();
