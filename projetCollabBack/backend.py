@@ -22,6 +22,12 @@ def get_random_color():
     color = "%06x" % random.randint(0, 0xFFFFFF)
     return color
 
+def get_random_team_name():
+    word1 = ["Les", "The"]
+    word2 = ["moonstres", "beaux gosse", "loosers", "front"]
+    word3 = ["nationaux", "de la mort", "de la loose", "de l'IMT"]
+    return f"{random.choice(word1)} {random.choice(word2)} {random.choice(word3)}"
+
 # Variables =======================================================================
 possibleSatusOfQuizz = {1: "Waiting", 2: "Started"}
 statusOfQuizz = possibleSatusOfQuizz.get(1)
@@ -43,7 +49,7 @@ def addPlayerToATeam(username, sid):
             break
         
     if not didFoundATeam:
-        teams.append({ "id": get_random_string(4), "name": get_random_string(4), "color": get_random_color(), "players": [{ "id": sid, "username": username}], "numberOfGoodAnswer": 0})
+        teams.append({ "id": get_random_string(4), "name": get_random_team_name(), "color": get_random_color(), "players": [{ "id": sid, "username": username}], "numberOfGoodAnswer": 0})
 
 def findTeamNameOfPlayer(username):
     userTeam = ""
