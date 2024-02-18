@@ -23,9 +23,9 @@ def get_random_color():
     return color
 
 def get_random_team_name():
-    word1 = ["Les", "The"]
-    word2 = ["moonstres", "beaux gosse", "loosers", "front"]
-    word3 = ["nationaux", "de la mort", "de la loose", "de l'IMT"]
+    word1 = ["Les"]
+    word2 = ["triple moonstres", "beaux gosse", "loooosers", "super puissants"]
+    word3 = ["de la mort", "de la loose", "de l'IMT", "de la win", "des proba stats"]
     return f"{random.choice(word1)} {random.choice(word2)} {random.choice(word3)}"
 
 # Variables =======================================================================
