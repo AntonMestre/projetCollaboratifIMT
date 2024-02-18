@@ -129,6 +129,8 @@ def rollingTheQuizz():
             displayTheCorrectAnswer(part.get("correctID"))
             displayTheRanking()
             time.sleep(5)
+        socketio.emit('quizzEnded', room=quizzId)
+
 
 # Websockets Functions =======================================================================
 @app.route('/')

@@ -18,6 +18,7 @@ const isProcessingAnswersOfPhase1 = ref(false);
 const finalAnswer = ref('');
 const correctAnswer = ref('');
 const ranking = ref([]);
+const quizzEnded = ref(false);
 
 const answerColors = [
     '#FF203B',
@@ -95,6 +96,9 @@ socket.on('correctAnswer', (data) => {
 });
 socket.on('ranking', (data) => {
     ranking.value = data;
+});
+socket.on('quizzEnded', (data) => {
+    quizzEnded.value = true;
 });
 
 getStatusOfQuizz();
