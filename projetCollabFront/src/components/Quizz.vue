@@ -167,12 +167,30 @@ getStatusOfQuizz();
             </div>
         </div>
     </div>
-    <div v-if="statusOfQuizz == 'Started' && phase == 'phase3'">
-        <p>La bonne réponse était:  {{ correctAnswer.answer }}</p>
-        <p>Classement: {{ console.log(ranking) }}</p>
-        <ul>
-            <li v-for="team in ranking">{{ team.id }} - {{ team.numberOfGoodAnswer }}</li>
-        </ul>
+    <div id="phase3" v-if="statusOfQuizz == 'Started' && phase == 'phase3'"  class="quizz-container">
+        <div id="quizz-header">
+            <h3>Round 2</h3>
+            <h1>{{ actualQuestion }}</h1>
+            <div id="counter">20</div>
+        </div>
+        <div class="answers-container">
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': correctAnswer.id == index + 1 }">
+                <h3>{{answer.answer}}</h3>
+                <p class="answer-confidence">{{confidenceOfTheTeamOnTheAnswer[index]}} % confidence</p>
+                <div class="answer-icon" v-if="correctAnswer.id === index + 1">
+                    <svg width="83" height="83" viewBox="0 0 83 83" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect y="48.139" width="15.1136" height="47.9692" transform="rotate(-44.2429 0 48.139)" fill="white"/>
+                        <rect x="33.4688" y="82.5036" width="15.1136" height="68.9968" transform="rotate(-134.243 33.4688 82.5036)" fill="white"/>
+                    </svg>
+                </div>
+                <div class="answer-icon" v-else>
+                    <svg width="60" height="59" viewBox="0 0 60 59" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5455 58.9664L0.000691027 48.1392L49.4292 0L59.9739 10.8272L10.5455 58.9664Z" fill="white"/>
+                        <path d="M59.9752 48.1377L49.4309 58.9654L0 10.8287L10.5442 0.000982196L59.9752 48.1377Z" fill="white"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <style>
@@ -395,6 +413,7 @@ getStatusOfQuizz();
 
 .answer-container {
     display: flex;
+    position: relative;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -402,6 +421,18 @@ getStatusOfQuizz();
     border-radius: 4px;
     transition: opacity 0.2s, outline-width 0.1s;
     outline: #7000FF 0 solid;
+}
+
+.answer-icon {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(-80%, -50%);
+}
+
+.answer-icon svg {
+    width: 4vw;
+    height: 4vw;
 }
 
 #phase2 .answer-container {
@@ -412,6 +443,14 @@ getStatusOfQuizz();
     opacity: 1 !important;
     outline: #7000FF 5px solid;
 
+}
+
+#phase3 .answer-container {
+    opacity: .2;
+}
+
+#phase3 .answer-container.selected {
+    outline: none
 }
 
 .answer-container:not(:hover) {
