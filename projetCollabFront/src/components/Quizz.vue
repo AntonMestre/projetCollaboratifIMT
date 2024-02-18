@@ -98,6 +98,7 @@ socket.on('ranking', (data) => {
     ranking.value = data;
 });
 socket.on('quizzEnded', (data) => {
+    console.log("quiz ended")
     quizzEnded.value = true;
 });
 
@@ -173,7 +174,7 @@ getStatusOfQuizz();
             </div>
         </div>
     </div>
-    <div id="phase3" v-if="statusOfQuizz == 'Started' && phase == 'phase3'"  class="quizz-container">
+    <div id="phase3" v-if="statusOfQuizz == 'Started' && phase == 'phase3' && !quizzEnded"  class="quizz-container">
         <div id="quizz-header">
             <h3>Round 2</h3>
             <h1>{{ actualQuestion }}</h1>
@@ -198,6 +199,12 @@ getStatusOfQuizz();
                     </div>
                 </template>
             </div>
+        </div>
+    </div>
+    <div id="podium" v-if="quizzEnded">
+        <div v-for="(rank, index) in ranking.slice(0, 3)" :key="index" :id="'podium' + (index + 1)" :style="{ backgroundColor: '#' + rank.color }">
+            <h1>{{ rank.name }}</h1>
+            <h2>{{ index + 1 }}</h2>
         </div>
     </div>
 </template>
@@ -525,5 +532,59 @@ getStatusOfQuizz();
     font-weight: normal;
     margin: 0;
 }
+
+#podium {
+    height: 100vh;
+    background-color: #7000FF;
+    position: relative;
+}
+
+#podium1, #podium2, #podium3 {
+    position: absolute;
+}
+
+#podium1 {
+    bottom: 0%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 20%;
+    height: 75%;
+}
+
+#podium2 {
+    bottom: 0%;
+    left: 30%;
+    transform: translate(-50%, 0);
+    width: 20%;
+    height: 60%;
+}
+
+#podium3 {
+    bottom: 0%;
+    left: 70%;
+    transform: translate(-50%, 0);
+    width: 20%;
+    height: 50%;
+}
+
+#podium h1 {
+    font-size: 2rem;
+    color: white;
+    font-weight: normal;
+    margin: 0;
+    text-align: center;
+    background-color: #7000FF;
+    padding-bottom: 4vh;
+}
+
+#podium h2 {
+    font-size: 5rem;
+    color: white;
+    font-weight: normal;
+    margin: 0;
+    text-align: center;
+    padding-top: 4vh;
+}
+
 
 </style>
