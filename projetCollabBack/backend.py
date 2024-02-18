@@ -108,6 +108,9 @@ def resetValuesOfAnswers():
     global finalAnswersForTheQuestion
     finalAnswersForTheQuestion = []
 
+def sendTheAnswerOfTheTeams():
+    socketio.emit('answersOfTheTeams', finalAnswersForTheQuestion, room=quizzId)
+
 def rollingTheQuizz():
     with app.test_request_context():
         for part in quizzData:
@@ -125,6 +128,7 @@ def rollingTheQuizz():
 
             time.sleep(1)
             processGoodAnswerByTeams(part.get("correctID"))
+            sendTheAnswerOfTheTeams()
             
             displayTheCorrectAnswer(part.get("correctID"))
             displayTheRanking()
