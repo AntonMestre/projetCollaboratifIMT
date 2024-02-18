@@ -51,7 +51,6 @@ socket.on('teamId', (data) => {
 });
 socket.on('teams', (data) => {
     teams.value = data;
-    console.log(data);
 });
 
 /* Start Quizz part */
@@ -62,7 +61,6 @@ socket.on('quizzHasStarted', () => {
     phase.value = 'phase1';
 });
 socket.on('questionAndAnswers', (data) => {
-    console.log(data)
     actualQuestion.value = data.question;
     actualAnswers.value = data.answers;
 });
@@ -82,13 +80,14 @@ socket.on('phase1Ended', (data) => {
 });
 socket.on('processedAnswers', (data) => {
     // find by the answers array the team of the user in the data wich is in the form of [ { "teamId" : 1234, "answers": [12, 14, 14, 12] } ]
-    console.log(teamIdOfThePlayer.value);
     let team = data.find(team => team.teamId == teamIdOfThePlayer.value);
     confidenceOfTheTeamOnTheAnswer.value = team.answers;
     isProcessingAnswersOfPhase1.value = false;
 });
 socket.on('phase2Ended', (data) => {
     phase.value = 'phase3';
+    userAnswer.value = [0,0,0,0];
+    finalAnswer.value = '';
     socket.emit('sendAnswerPhase2', { "username": username.value, "finalAnswer": finalAnswer.value});
 });
 socket.on('correctAnswer', (data) => {
@@ -165,7 +164,7 @@ getStatusOfQuizz();
             <div id="counter">20</div>
         </div>
         <div class="answers-container">
-            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': finalAnswer == index + 1 }" @click="() => {finalAnswer = (index + 1).toString(); console.log(finalAnswer)}">
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': finalAnswer == index + 1 }" @click="finalAnswer = (index + 1).toString()">
                 <h3>{{answer.answer}}</h3>
                 <p class="answer-confidence">{{confidenceOfTheTeamOnTheAnswer[index]}} % confidence</p>
             </div>
