@@ -36,7 +36,7 @@ socket.on('getStatusOfQuizz', (data) => {
 
 /* Join Quizz part */
 const joinQuiz = () => {
-    socket.emit('joinWaitingRoom');
+    socket.emit('joinWaitingRoom', { "username": username.value });
     isInTheWaitingRoom.value = true;
 };
 socket.on('userTeam', (data) => {
@@ -104,8 +104,8 @@ getStatusOfQuizz();
     <div v-if="!isInTheWaitingRoom && statusOfQuizz != 'Started'" id="join-quizz">
         <h1>Enter your pseudo</h1>
         <div id="join-quizz-inputs">
-            <input type="text" placeholder="Pseudo">
-            <button @click="joinQuiz">→</button>
+            <input type="text" placeholder="Pseudo" v-model="username">
+            <button @click="joinQuiz" :disabled="username === ''">→</button>
         </div>
     </div>
     <div v-if="teamOfThePlayer && statusOfQuizz == 'Waiting'" id="waiting-room">
@@ -250,11 +250,16 @@ getStatusOfQuizz();
     color: #7000FF;
     background-color: white;
     aspect-ratio: 1/1;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    opacity: 1;
 }
 
 #join-quizz-inputs button:hover {
     background-color: #E0E0E0;
+}
+
+#join-quizz-inputs button:disabled {
+    opacity: .5;
 }
 
 #waiting-room {

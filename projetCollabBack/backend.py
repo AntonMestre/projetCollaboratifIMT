@@ -135,8 +135,8 @@ def getStatusOfQuizz():
      emit('getStatusOfQuizz', statusOfQuizz)
 
 @socketio.on('joinWaitingRoom')
-def joinWaitingRoom():
-    username = get_random_string(4)
+def joinWaitingRoom(data):
+    username = data["username"] or get_random_string(4)
     join_room(quizzId)
     
     addPlayerToATeam(username, request.sid)
