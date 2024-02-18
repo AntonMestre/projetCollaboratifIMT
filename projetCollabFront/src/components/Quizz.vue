@@ -120,8 +120,8 @@ getStatusOfQuizz();
                 <div v-for="team in teams" :key="team.id" class="team">
                     <h3 :style="{ color: '#' + team.color }">{{ team.name }}</h3>
                     <div class="teammates-container">
-                        <div v-for="teammate in team.players" :key="teammate.id" class="teammate" :style="{ backgroundColor: '#' + team.color }">
-                            {{ teammate.username }}
+                        <div  v-for="teammate in team.players" :key="teammate.id" class="teammate" :style="{ backgroundColor: '#' + team.color }">
+                            {{ teammate.username}} {{ teammate.username === username ? '(you)' : '' }}
                         </div>
                     </div>
                 </div>
