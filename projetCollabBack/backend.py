@@ -99,10 +99,12 @@ def processGoodAnswerByTeams(correct):
     for team in finalAnswersForTheQuestion:
         possible_answers = set(answer["answer"] for answer in team["finalAnswers"])
         mostRepresentativeAnswer = max(possible_answers, key=team["finalAnswers"].count)
+        socketio.emit('mostRepresentativeAnswer', { "teamId": team["teamId"], "answer": mostRepresentativeAnswer }, room=quizzId)
         if mostRepresentativeAnswer == correct:
             for teamInTeams in teams:
                 if teamInTeams["id"] == team["teamId"]:
                     teamInTeams["numberOfGoodAnswer"] += 1
+                    
 
 def displayTheRanking():
     ranking = sorted(teams, key=lambda x: x['numberOfGoodAnswer'], reverse=True)
