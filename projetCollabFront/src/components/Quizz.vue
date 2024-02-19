@@ -11,7 +11,11 @@ const isInTheWaitingRoom = ref(false);
 const actualQuestion = ref('');
 const actualAnswers = ref([]);
 const userAnswer = ref([0,0,0,0]);
-    const phase = ref('');
+const remainingToDistribute = computed(() => {
+  return 100 - userAnswer.value.reduce((a, b) => Number(a) + Number(b), 0);
+});
+
+const phase = ref('');
 const teamIdOfThePlayer = ref('');
 const confidenceOfTheTeamOnTheAnswer = ref([]);
 const isProcessingAnswersOfPhase1 = ref(false);
@@ -150,16 +154,16 @@ getStatusOfQuizz();
             <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}">
                 <h3>{{ answer.answer }}</h3>
                 <div class="range-container">
-                    <p>Sure at <span>0%</span></p>
+                    <p>Sure at <span>{{ userAnswer[index] }}</span></p>
                     <div class="range-input-container">
                         <div>0%</div>
-                        <input type="range" min="1" max="100" value="0" :id="'answer' + index" v-model="userAnswer[index]">
+                        <input type="range" min="1" max="100" v-model="userAnswer[index]">
                         <div>100%</div>
                     </div>
                 </div>
             </div>
             <div id="quizz-percentage-to-distribute">
-                <span>100%</span> to distribute
+                <span>{{ remainingToDistribute }}</span> to distribute
             </div>
         </div>
     </div>
