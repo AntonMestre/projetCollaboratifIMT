@@ -23,11 +23,7 @@ const finalAnswer = ref('');
 const correctAnswer = ref('');
 const ranking = ref([]);
 const quizzEnded = ref(false);
-const answersOfTheTeamsForTheCurrentQuestion = ref([]);
-
-const myTeamAnswer = computed(() => {
-  return answersOfTheTeamsForTheCurrentQuestion.value.find(team => team.teamId === teamIdOfThePlayer.value);
-});
+const teamAnswer = ref('');
 
 const counter = ref(20);
 setInterval(() => {
@@ -42,6 +38,13 @@ const answerColors = [
     '#FEC00A',
     '#45A2E5',
 ];
+
+socket.on('mostRepresentativeAnswer', (data) => {
+  if(data.teamId === teamIdOfThePlayer.value) {
+    console.log(data.answer)
+    teamAnswer.value = data.answer
+  }
+})
 
 /* Status Of Quizz part */
 const getStatusOfQuizz = () => {
@@ -86,6 +89,7 @@ socket.on("phase1Starting", (data) => {
     userAnswer.value = [0,0,0,0];
     finalAnswer.value = '';
     correctAnswer.value = '';
+    teamAnswer.value = '';
     counter.value = 15;
     phase.value = 'phase1';
 });
@@ -117,9 +121,6 @@ socket.on('ranking', (data) => {
 socket.on('quizzEnded', (data) => {
     console.log("quiz ended")
     quizzEnded.value = true;
-});
-socket.on('answersOfTheTeams', (data) => {
-    answersOfTheTeamsForTheCurrentQuestion.value = data;
 });
 
 getStatusOfQuizz();
@@ -201,12 +202,14 @@ getStatusOfQuizz();
         <div id="quizz-header">
             <h3>Round 2</h3>
             <h1>{{ actualQuestion }}</h1>
-            <div id="counter">{{ counter }}</div>
+            <div></div>
         </div>
         <div class="answers-container">
-            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': correctAnswer.id == index + 1, 'team-answer': myTeamAnswer ===  correctAnswer.id}">
+          {{console.log(teamAnswer)}}
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': correctAnswer.id == index + 1, 'team-answer': teamAnswer == answer.id}">
                 <template v-if="correctAnswer !== ''">
-                    <h3>{{answer.answer}}</h3>
+                  <p v-if="answer.id == teamAnswer" id="team-answer-indicator">Your team answer</p>
+                  <h3>{{answer.answer}}</h3>
                     <p class="answer-confidence">{{confidenceOfTheTeamOnTheAnswer[index]}} % confidence</p>
                     <div class="answer-icon" v-if="correctAnswer.id === index + 1">
                         <svg width="83" height="83" viewBox="0 0 83 83" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -452,6 +455,7 @@ getStatusOfQuizz();
     color: white;
     font-weight: normal;
     margin: 0;
+    text-align: center;
 }
 
 .answer-container {
@@ -485,7 +489,6 @@ getStatusOfQuizz();
 .answer-container.selected {
     opacity: 1 !important;
     outline: #7000FF 5px solid;
-
 }
 
 #phase3 .answer-container {
@@ -609,5 +612,18 @@ getStatusOfQuizz();
     padding-top: 4vh;
 }
 
+.team-answer {
+  outline: #7000FF 5px solid !important;
+}
+
+#team-answer-indicator {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  color: #7000FF;
+  font-size: 3rem;
+  padding: 0;
+  margin: 0;
+}
 
 </style>
