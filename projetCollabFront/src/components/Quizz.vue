@@ -25,6 +25,17 @@ const ranking = ref([]);
 const quizzEnded = ref(false);
 const answersOfTheTeamsForTheCurrentQuestion = ref([]);
 
+const myTeamAnswer = computed(() => {
+  return answersOfTheTeamsForTheCurrentQuestion.value.find(team => team.teamId === teamIdOfThePlayer.value);
+});
+
+const counter = ref(20);
+setInterval(() => {
+  if (counter.value > 0) {
+    counter.value--;
+  }
+}, 1000);
+
 const answerColors = [
     '#FF203B',
     '#6AC03B',
@@ -75,6 +86,7 @@ socket.on("phase1Starting", (data) => {
     userAnswer.value = [0,0,0,0];
     finalAnswer.value = '';
     correctAnswer.value = '';
+    counter.value = 15;
     phase.value = 'phase1';
 });
 socket.on('phase1Ended', (data) => {
@@ -83,7 +95,7 @@ socket.on('phase1Ended', (data) => {
     isProcessingAnswersOfPhase1.value = true;
     // convert string to numbers in the array userAnswer
     userAnswer.value = userAnswer.value.map(Number);
-    
+    counter.value = 20;
     socket.emit('sendAnswerPhase1', { "username": username.value, "answers": userAnswer.value});
 });
 socket.on('processedAnswers', (data) => {
@@ -137,7 +149,10 @@ getStatusOfQuizz();
             <div id="instructions-container">
                 <div id="instructions">
                     <h2>How to play ???</h2>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec dapibus eros ut dapibus placerat. Morbi fermentum molestie interdum. Etiam tempor, lectus quis scelerisque volutpat, odio purus sagittis lacus, finibus finibus sem lectus in justo. Praesent sollicitudin imperdiet neque vitae vestibulum.</p>
+                    <p>
+                      Each question is divided in two rounds. In the first round, you have to distribute your confidence on each answers.
+                      Then you have a few seconds to discuss with your team and choose the final answer, based on the average confidence for each answer.
+                    </p>
                 </div>
                 <button v-if="isInTheWaitingRoom && statusOfQuizz == 'Waiting'" @click="startQuizz">Start the quizz →</button>
             </div>
@@ -148,13 +163,13 @@ getStatusOfQuizz();
         <div id="quizz-header">
             <h3>Round 1</h3>
             <h1>{{ actualQuestion }}</h1>
-            <div id="counter">20</div>
+            <div id="counter">{{counter}}</div>
         </div>
         <div class="answers-container">
             <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}">
                 <h3>{{ answer.answer }}</h3>
                 <div class="range-container">
-                    <p>Sure at <span>{{ userAnswer[index] }}</span></p>
+                    <p>Sure at <span>{{ userAnswer[index] }} %</span></p>
                     <div class="range-input-container">
                         <div>0%</div>
                         <input type="range" min="1" max="100" v-model="userAnswer[index]">
@@ -163,7 +178,7 @@ getStatusOfQuizz();
                 </div>
             </div>
             <div id="quizz-percentage-to-distribute">
-                <span>{{ remainingToDistribute }}</span> to distribute
+                <span>{{ remainingToDistribute }} %</span> to distribute
             </div>
         </div>
     </div>
@@ -171,7 +186,7 @@ getStatusOfQuizz();
         <div id="quizz-header">
             <h3>Round 2</h3>
             <h1>{{ actualQuestion }}</h1>
-            <div id="counter">20</div>
+            <div id="counter">{{counter}}</div>
         </div>
         <div class="answers-container">
             <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': finalAnswer == index + 1 }" @click="finalAnswer = (index + 1).toString()">
@@ -186,10 +201,10 @@ getStatusOfQuizz();
         <div id="quizz-header">
             <h3>Round 2</h3>
             <h1>{{ actualQuestion }}</h1>
-            <div id="counter">20</div>
+            <div id="counter">{{ counter }}</div>
         </div>
         <div class="answers-container">
-            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': correctAnswer.id == index + 1 }">
+            <div v-for="(answer, index) in actualAnswers" :key="index" class="answer-container" :style="{backgroundColor: answerColors[index]}" :class="{ 'selected': correctAnswer.id == index + 1, 'team-answer': myTeamAnswer ===  correctAnswer.id}">
                 <template v-if="correctAnswer !== ''">
                     <h3>{{answer.answer}}</h3>
                     <p class="answer-confidence">{{confidenceOfTheTeamOnTheAnswer[index]}} % confidence</p>

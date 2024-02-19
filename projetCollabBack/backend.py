@@ -124,12 +124,12 @@ def rollingTheQuizz():
 
             socketio.emit('phase1Starting', room=quizzId)
             displayQuestionAndAnswers(part.get("question"), part.get("answers"))
-            time.sleep(5)
+            time.sleep(15)
             socketio.emit('phase1Ended', room=quizzId)
             
             time.sleep(1)
             displayProcessedAnswers()
-            time.sleep(5)
+            time.sleep(20)
             socketio.emit('phase2Ended', room=quizzId)
 
             time.sleep(1)
